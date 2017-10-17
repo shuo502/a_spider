@@ -10,6 +10,7 @@ import xlwt
 import re
 import subprocess
 import nlp
+import excelsave
 reload(sys)
 sys.setdefaultencoding('utf8')
 #id=599648   news title id
@@ -71,20 +72,20 @@ class sina():
         print "新news id：%s" % str(self.newid)
         self.restr = []
         for data in l:
-            createTime, id, country, asset, content=["","","","",""]
+            iam,createTime, id, country, asset, icontent=["sina","","","","",""]
             createTime=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(data['created_at'])))
             icontent=data["content"]
             # x = time.localtime(int(i["created_at"]))
             # sd = time.localtime(int(i["created_at"]))
             # print(time.strftime('%Y-%m-%d %H:%M:%S', x),time.strftime('%Y-%m-%d %H:%M:%S', sd))
-            id=i[id]
-            print ("id :%s" %i["id"])
+            id=data['id']
+            print ("id :%s" %data["id"])
             s=""
             for o in data["tag"]:s=s+str(o['tag_id'])+str(o['tag_name'])
             print s
             print ("sina:"+str(data["content"]))
             # self.restr.append(data["content"])
-            self.restr.append(["sina",createTime, id, country, asset, content])
+            self.restr.append([iam,createTime, id, country, asset, icontent])
             # self.restr.append([createTime,inid,icontent])dd
         return self.restr
 
@@ -93,8 +94,9 @@ class sina():
             return
         self.restr = []
         j = i[i.find("(") + 1:i.rfind(")")]
-        l = json.loads(j)["results"]
-        l= re.compile(r'\<\/?p\>').sub('', l)
+        k= re.compile(r'\<\/?p\>').sub('', j)
+        l = json.loads(k)["results"]
+
         #paixu
         l=sorted(l, key=lambda e: e.__getitem__('id'))
         if l:self.wnewid=l[-1]["id"]
@@ -140,36 +142,36 @@ class sina():
         subprocess.call(["mplayer", self.getSpeech(text)], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
+if __name__=="__main__":
+    t = sina()
+    n=nlp.nlpc()
+    e=excelsave.excelsavec()
+    t.spd=6
+    t.setid(600367)
+    xi=0
+    while 1:
+        t.restr=[]
+        if xi==0:
+            xi=1
+            t.runsina()
+        else:
+            xi=0
+            t.runwallstreetcn()
+        k=[]
+        if type(t.restr)!=str:
+            k=t.restr
+            k=n.startArr(k)
+            e.saveAll(k)#写入excel
+            e.eXsave()#保存
 
-t = sina()
-n=nlp.nlpc()
-import excelsave
-e=excelsave()
+        for i in k:
+            jbc=i
+            #nlp tiqu key
+            # jbc=str(i[4])
+            # jbc=n.saveData(i)
+            print "tip:",jbc
+            # e.saveData(jbc)#写入excel
+            t.audioplay(i[5])#语音 mplayer 播放 需要安装
+            pass
 
-
-t.spd=6
-
-
-n.start()
-t.setid(600367)
-xi=0
-while 1:
-    t.restr=[]
-    if xi==0:
-        xi=1
-        t.runsina()
-    else:
-        xi=0
-        t.runwallstreetcn()
-
-    for i in t.restr:
-        jbc=""
-        #nlp tiqu key
-
-        # jbc=str(i[4])
-        jbc=n.start(i)
-
-        print "tip:",jbc
-        t.audioplay(jbc[5])#语音 mplayer 播放 需要安装
-        pass
-    time.sleep(15)
+        time.sleep(15)

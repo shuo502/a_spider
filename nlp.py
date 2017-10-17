@@ -82,10 +82,7 @@ class nlpc():
         x = json.loads(k[1:k.rfind("]")])
         # print x
         sti=[]
-        # for si in x:
-        #     ss="".join(x[si])
-        #     print ss
-        #     sti.append(ss)
+
         for si in x:
             st = ""
             for i in x[si]:
@@ -120,7 +117,7 @@ class nlpc():
             return self.qgout(x)
         return x
     def start(self,data):
-
+        # print type(data),data
         if type(data)==str:
             a = self.run("qg", data)
             # b = self.run("zydj", data)
@@ -131,11 +128,19 @@ class nlpc():
             # i,createTime, id, country, asset, content
             return x
         if type(data)==list or type(data)==tuple:
-            idata=data[5]
-            data[2] = self.run("qg", idata)
+            idata=data
+            # idata[4]=data[4]
+            idata[3] = self.run("qg", idata[5])
             # b = self.run("zydj", data)
-            data[3] = self.run("fl", idata)
-            return data
+            idata[4] = self.run("fl", idata[5])
+            idata[5]=data[5]
+            return idata
+
+    def startArr(self,Arraydata):
+        returndata=[]
+        for data in Arraydata:
+            returndata.append(self.start(data))
+        return returndata
 
 
 
