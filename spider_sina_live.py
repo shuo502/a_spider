@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin python
 # -*- coding: UTF-8 –*-
 import urllib
 import urllib2
@@ -62,29 +62,30 @@ class sina():
 
         p=re.compile(r"<(.*?)\\/a>")
         j=re.sub(p,"",r)#清除部分内容
-
+        j = re.compile(r'\<\/?p\>').sub('', j)
         n=json.loads(j,strict=False)
         l=n["result"]["data"]
         l=sorted(l, key=lambda e: e.__getitem__('id'))
         if l:self.id=l[-1]["id"]
-        # for i in l:
-        #     self.id=i["id"]
         self.newid=self.id
         print "新news id：%s" % str(self.newid)
-        #     break
-
         self.restr = []
-
-        for i in l:
-            x = time.localtime(int(i["created_at"]))
-            sd = time.localtime(int(i["created_at"]))
-            print(time.strftime('%Y-%m-%d %H:%M:%S', x),time.strftime('%Y-%m-%d %H:%M:%S', sd))
+        for data in l:
+            createTime, id, country, asset, content=["","","","",""]
+            createTime=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(data['created_at'])))
+            icontent=data["content"]
+            # x = time.localtime(int(i["created_at"]))
+            # sd = time.localtime(int(i["created_at"]))
+            # print(time.strftime('%Y-%m-%d %H:%M:%S', x),time.strftime('%Y-%m-%d %H:%M:%S', sd))
+            id=i[id]
             print ("id :%s" %i["id"])
             s=""
-            for o in i["tag"]:s=s+str(o['tag_id'])+str(o['tag_name'])
+            for o in data["tag"]:s=s+str(o['tag_id'])+str(o['tag_name'])
             print s
-            print ("sina:"+str(i["content"]))
-            self.restr.append(i["content"])
+            print ("sina:"+str(data["content"]))
+            # self.restr.append(data["content"])
+            self.restr.append(["sina",createTime, id, country, asset, content])
+            # self.restr.append([createTime,inid,icontent])dd
         return self.restr
 
     def walljsondata(self,i):
@@ -93,6 +94,8 @@ class sina():
         self.restr = []
         j = i[i.find("(") + 1:i.rfind(")")]
         l = json.loads(j)["results"]
+        l= re.compile(r'\<\/?p\>').sub('', l)
+        #paixu
         l=sorted(l, key=lambda e: e.__getitem__('id'))
         if l:self.wnewid=l[-1]["id"]
         # for mt in l:
@@ -102,12 +105,15 @@ class sina():
         self.restr = []
         print"l:",type(l)
         for m in l:
-            p4 = m["id"]
-            p1 = m["contentText"]
-            p3 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(m["updatedAt"])))
-            if self.wid<p4:
-                print p4, "\n", p3, "\n wallstreetcn:", p1
-                self.restr.append(p1)
+            createTime, id, country, asset, content =["","","","",""]
+            id = m["id"]
+            content = m["contentText"]
+            createTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(m["updatedAt"])))
+            if self.wid<id:
+                self.restr.append(["wscn",createTime, id, country, asset, content])
+                print "write %s" %str(id)
+                print content
+                # createTime, important, country, asset, content = data
         self.wid=self.wnewid
         return self.restr
 
@@ -115,11 +121,13 @@ class sina():
         self.sinaurl()
         stri = self.request()
         rstr=self.jsondata(stri)
+        # excel arr
         return rstr
 
     def runwallstreetcn(self):
         self.wallstreetcnurl()
         stri = self.request()
+        # excel import stri
         rstr=self.walljsondata(stri)
         return rstr
 
@@ -134,9 +142,14 @@ class sina():
 
 
 t = sina()
+n=nlp.nlpc()
+import excelsave
+e=excelsave()
+
+
 t.spd=6
 
-n=nlp.nlpc()
+
 n.start()
 t.setid(600367)
 xi=0
@@ -150,10 +163,13 @@ while 1:
         t.runwallstreetcn()
 
     for i in t.restr:
-        j=""
-        j=n.start(i)
-        j=str(j)+str(i)
-        print "tip:",j
-        t.audioplay(j)#语音 mplayer 播放 需要安装
+        jbc=""
+        #nlp tiqu key
+
+        # jbc=str(i[4])
+        jbc=n.start(i)
+
+        print "tip:",jbc
+        t.audioplay(jbc[5])#语音 mplayer 播放 需要安装
         pass
     time.sleep(15)
